@@ -29,7 +29,7 @@ const sendUserData = (res, user, token) => {
     photo,
     role,
     isVerified,
-    token,
+    token: token && token,
   });
 };
 

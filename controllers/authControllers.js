@@ -116,5 +116,46 @@ exports.logoutUser = asyncHandler(async (req, res) => {
 
 /////////Get Single User
 exports.getUser = asyncHandler(async (req, res) => {
-  res.send("cool");
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    return sendUserData(res, user);
+  } else {
+    setError({
+      res,
+      code: 404,
+      message: "User not found!",
+    });
+  }
+});
+
+///////Update user
+exports.updateUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  const userData = req.body;
+
+  if (user) {
+    const { name, email, phone, bio, photo, role, isVerified } = user;
+
+    user.name = userData.name || name;
+    user.phone = userData.phone || phone;
+    user.bio = userData.bio || bio;
+    user.photo = userData.photo || photo;
+
+    const updatedUser = await user.save();
+
+    sendUserData(res, updatedUser);
+  } else {
+    setError({
+      res,
+      code: 404,
+      message: "User not found!",
+    });
+  }
+});
+
+///////////Delete user
+exports.deleteUser = asyncHandler(async (req, res) => {
+  res.send("delete");
 });
