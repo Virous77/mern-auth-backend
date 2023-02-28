@@ -8,6 +8,7 @@ const {
   deleteUser,
   getUsers,
   checkLoginUser,
+  changeUserRole,
 } = require("../controllers/authControllers");
 const { privateRoute } = require("../middleware/authMiddleware");
 const {
@@ -28,5 +29,6 @@ router.delete("/:id", privateRoute, adminOnly, deleteUser);
 router.get("/get-users", privateRoute, authorOnly, getUsers);
 
 router.get("/login-status", checkLoginUser);
+router.post("/user-role", privateRoute, adminOnly, changeUserRole);
 
 module.exports = router;

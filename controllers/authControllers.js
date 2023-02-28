@@ -204,3 +204,24 @@ exports.checkLoginUser = asyncHandler(async (req, res) => {
     return res.json(false);
   }
 });
+
+///////////Chnage User role
+exports.changeUserRole = asyncHandler(async (req, res) => {
+  const { role, id } = req.body;
+
+  const user = await User.findById(id);
+
+  if (!user) {
+    setError({
+      res,
+      message: "User not found",
+    });
+  }
+
+  user.role = role;
+  await user.save();
+
+  res.status(200).json({
+    message: `User role updated to ${role}`,
+  });
+});
