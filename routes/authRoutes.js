@@ -6,9 +6,14 @@ const {
   getUser,
   updateUser,
   deleteUser,
+  getUsers,
+  checkLoginUser,
 } = require("../controllers/authControllers");
 const { privateRoute } = require("../middleware/authMiddleware");
-const { adminOnly } = require("../middleware/adminDeleteMiddleware");
+const {
+  adminOnly,
+  authorOnly,
+} = require("../middleware/adminDeleteMiddleware");
 
 const router = express.Router();
 
@@ -18,7 +23,10 @@ router.get("/logout", logoutUser);
 router.get("/user", privateRoute, getUser);
 router.patch("/update-user", privateRoute, updateUser);
 
-///Admin routes
+///Admins routes
 router.delete("/:id", privateRoute, adminOnly, deleteUser);
+router.get("/get-users", privateRoute, authorOnly, getUsers);
+
+router.get("/login-status", checkLoginUser);
 
 module.exports = router;

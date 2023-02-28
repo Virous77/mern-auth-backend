@@ -8,6 +8,7 @@ const {
   generateToken,
 } = require("../utils/data");
 const uaParser = require("ua-parser-js");
+const jwt = require("jsonwebtoken");
 
 //////////Register User Handler
 exports.registerUser = asyncHandler(async (req, res) => {
@@ -157,5 +158,49 @@ exports.updateUser = asyncHandler(async (req, res) => {
 
 ///////////Delete user
 exports.deleteUser = asyncHandler(async (req, res) => {
-  res.send("delete");
+  const user = User.findById(req.params.id);
+
+  if (!user) {
+    setError({
+      res,
+      message: "User not found",
+    });
+  }
+
+  await user.remove();
+  res.status(200).json({
+    message: "User deleted successfully!",
+  });
+});
+
+///////////Get Users
+exports.getUsers = asyncHandler(async (req, res) => {
+  const users = await User.find().sort("-createdAt").select("-password");
+
+  if (!users) {
+    setError({
+      res,
+      message: "User not found",
+    });
+  }
+
+  res.status(200).json(users);
+});
+
+///////////Login Status watch
+exports.checkLoginUser = asyncHandler(async (req, res) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.json(false);
+  }
+
+  //Verify Token
+  const verified = jwt.verify(token, process.env.JWT_SECRET);
+
+  if (verified) {
+    return res.json(true);
+  } else {
+    return res.json(false);
+  }
 });

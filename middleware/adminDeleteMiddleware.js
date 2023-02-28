@@ -1,6 +1,7 @@
 const { setError } = require("../utils/data");
+const asyncHandler = require("express-async-handler");
 
-const adminOnly = async (req, res) => {
+const adminOnly = asyncHandler(async (req, res, next) => {
   if (req.user && req.user.role === "admin") {
     next();
   } else {
@@ -10,9 +11,9 @@ const adminOnly = async (req, res) => {
       message: "You are not authorized for this action",
     });
   }
-};
+});
 
-const authorOnly = async (req, res) => {
+const authorOnly = asyncHandler(async (req, res, next) => {
   if (req.user.role === "author" || req.user.role === "admin") {
     next();
   } else {
@@ -22,9 +23,9 @@ const authorOnly = async (req, res) => {
       message: "You are not authorized for this action",
     });
   }
-};
+});
 
-const verifiedOnly = async (req, res) => {
+const verifiedOnly = asyncHandler(async (req, res, next) => {
   if (req.user && req.user.isVerified) {
     next();
   } else {
@@ -34,7 +35,7 @@ const verifiedOnly = async (req, res) => {
       message: "You account is not yet verified.",
     });
   }
-};
+});
 
 module.exports = {
   adminOnly,
