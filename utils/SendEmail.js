@@ -5,14 +5,13 @@ const path = require("path");
 const sendEmail = async (
   subject,
   send_to,
-  sending_from,
+  sent_from,
   reply_to,
   template,
   name,
   link
 ) => {
-  ///Email transporter
-
+  // Create Email Transporter
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: 587,
@@ -20,32 +19,44 @@ const sendEmail = async (
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
-
     tls: {
       rejectUnauthorized: false,
     },
   });
 
-  const handleBarsOptions = {
+  const handlerOptions = {
     viewEngine: {
       extName: ".handlebars",
-      partialDir: path.resolve("/views"),
+      partialsDir: path.resolve("./views"),
       defaultLayout: false,
     },
-    viewPath: path.resolve("/views"),
+    viewPath: path.resolve("./views"),
     extName: ".handlebars",
   };
 
-  ///Options for sending emails
+  transporter.use("compile", hbs(handlerOptions));
+
+  // Options f0r sending email
   const options = {
-    from: sending_from,
+    from: sent_from,
     to: send_to,
     replyTo: reply_to,
-    template,
     subject,
+    template,
     context: {
       name,
       link,
     },
   };
+
+  // Send Email
+  transporter.sendMail(options, function (err, info) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(info);
+    }
+  });
 };
+
+module.exports = sendEmail;

@@ -9,6 +9,7 @@ const {
 } = require("../utils/data");
 const uaParser = require("ua-parser-js");
 const jwt = require("jsonwebtoken");
+const sendEmail = require("../utils/SendEmail");
 
 //////////Register User Handler
 exports.registerUser = asyncHandler(async (req, res) => {
@@ -224,4 +225,52 @@ exports.changeUserRole = asyncHandler(async (req, res) => {
   res.status(200).json({
     message: `User role updated to ${role}`,
   });
+});
+
+////Send automated email
+exports.sendAutoMatedEmail = asyncHandler(async (req, res) => {
+  const { subject, send_to, reply_to, template, url } = req.body;
+
+  if (!subject || !send_to || !reply_to || !template) {
+    setError({
+      res,
+      message: "Missing email parameter!",
+    });
+  }
+
+  ///get User
+  const user = await User.findOne({ email: send_to });
+
+  if (!user) {
+    setError({
+      res,
+      message: "User not found",
+    });
+  }
+
+  const sent_from = process.env.EMAIL_USER;
+  const name = user.name;
+  const link = `${process.env.FRONTEND_URL}${url}`;
+
+  console.log(sent_from);
+
+  try {
+    await sendEmail(
+      subject,
+      send_to,
+      sent_from,
+      reply_to,
+      template,
+      link,
+      name
+    );
+    res.status(200).json({ message: "Email sent!" });
+  } catch (error) {
+    console.log(error);
+    setError({
+      res,
+      code: 500,
+      message: "Email not sent, Please try again",
+    });
+  }
 });

@@ -9,6 +9,7 @@ const {
   getUsers,
   checkLoginUser,
   changeUserRole,
+  sendAutoMatedEmail,
 } = require("../controllers/authControllers");
 const { privateRoute } = require("../middleware/authMiddleware");
 const {
@@ -30,5 +31,7 @@ router.get("/get-users", privateRoute, authorOnly, getUsers);
 
 router.get("/login-status", checkLoginUser);
 router.post("/user-role", privateRoute, adminOnly, changeUserRole);
+
+router.post("/send-automated-email", privateRoute, sendAutoMatedEmail);
 
 module.exports = router;
