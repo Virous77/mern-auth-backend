@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 //generate JWT token
 const generateToken = (id) => {
@@ -42,9 +43,15 @@ const setError = ({ res, code, message }) => {
   return error();
 };
 
+///Hash token
+const hashToken = (token) => {
+  return crypto.createHash("sha256").update(token.toString()).digest("hex");
+};
+
 module.exports = {
   generateToken,
   sendCookies,
   sendUserData,
   setError,
+  hashToken,
 };

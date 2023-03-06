@@ -10,6 +10,8 @@ const {
   checkLoginUser,
   changeUserRole,
   sendAutoMatedEmail,
+  verificationEmail,
+  verifyUser,
 } = require("../controllers/authControllers");
 const { privateRoute } = require("../middleware/authMiddleware");
 const {
@@ -33,5 +35,7 @@ router.get("/login-status", checkLoginUser);
 router.post("/user-role", privateRoute, adminOnly, changeUserRole);
 
 router.post("/send-automated-email", privateRoute, sendAutoMatedEmail);
+router.post("/verification-email", privateRoute, verificationEmail);
+router.patch("/verify-user/:verificationToken", privateRoute, verifyUser);
 
 module.exports = router;

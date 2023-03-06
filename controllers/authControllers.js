@@ -6,10 +6,13 @@ const {
   sendUserData,
   setError,
   generateToken,
+  hashToken,
 } = require("../utils/data");
 const uaParser = require("ua-parser-js");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/SendEmail");
+const Token = require("../models/tokenModel");
+const crypto = require("crypto");
 
 //////////Register User Handler
 exports.registerUser = asyncHandler(async (req, res) => {
@@ -206,7 +209,7 @@ exports.checkLoginUser = asyncHandler(async (req, res) => {
   }
 });
 
-///////////Chnage User role
+///////////Change User role
 exports.changeUserRole = asyncHandler(async (req, res) => {
   const { role, id } = req.body;
 
@@ -226,6 +229,8 @@ exports.changeUserRole = asyncHandler(async (req, res) => {
     message: `User role updated to ${role}`,
   });
 });
+
+///////////////////EMAIL FUNCTIONS//////////////////
 
 ////Send automated email
 exports.sendAutoMatedEmail = asyncHandler(async (req, res) => {
@@ -273,4 +278,106 @@ exports.sendAutoMatedEmail = asyncHandler(async (req, res) => {
       message: "Email not sent, Please try again",
     });
   }
+});
+
+///send Verification Email
+exports.verificationEmail = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    setError({
+      res,
+      message: "User not found",
+    });
+  }
+
+  if (user.isVerified) {
+    setError({
+      res,
+      message: "User already verified",
+    });
+  }
+
+  let token = await Token.findOne({ useId: user._id });
+
+  ///Delete token if it's exists in DB
+  if (token) {
+    await token.deleteOne();
+  }
+
+  //Create verification token and save
+  const verificationToken = crypto.randomBytes(32).toString("hex") + user._id;
+
+  //Hash token and save to DB
+  const hashedToken = hashToken(verificationToken);
+  await new Token({
+    userId: user.id,
+    vToken: hashedToken,
+    createdAt: Date.now(),
+    expiredAt: Date.now() + 60 * (60 * 1000),
+  }).save();
+
+  //Construct verification token
+  const verificationUrl = `${process.env.FRONTEND_URL}/VERIFY/${verificationToken}`;
+
+  const subject = "Verify Your account - Virous Team ";
+  const send_to = user.email;
+  const sent_from = process.env.EMAIL_USER;
+  const reply_to = "noreply@virous.com";
+  const template = "verifyEmail";
+  const name = user.name;
+  const link = verificationUrl;
+
+  try {
+    await sendEmail(
+      subject,
+      send_to,
+      sent_from,
+      reply_to,
+      template,
+      link,
+      name
+    );
+    res.status(200).json({ message: " Verification email sent!" });
+  } catch (error) {
+    console.log(error);
+    setError({
+      res,
+      code: 500,
+      message: "Email not sent, Please try again",
+    });
+  }
+});
+
+////verify user
+exports.verifyUser = asyncHandler(async (req, res) => {
+  const { verificationToken } = req.params;
+
+  const hashedToken = hashToken(verificationToken);
+
+  const userToken = await Token.findOne({
+    vToken: hashedToken,
+  });
+
+  if (!userToken) {
+    setError({
+      res,
+      message: "Invalid or Expired token",
+    });
+  }
+
+  /////Find user
+  const user = await User.findOne({ _id: userToken.userId });
+
+  if (user.isVerified) {
+    setError({
+      res,
+      message: "User is already verified.",
+    });
+  }
+
+  ////Now verify user
+  user.isVerified = true;
+  await user.save();
+  res.status(200).json({ message: "Account verified successfully!" });
 });
