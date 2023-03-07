@@ -12,6 +12,9 @@ const {
   sendAutoMatedEmail,
   verificationEmail,
   verifyUser,
+  forgotPassword,
+  resetPassword,
+  changePassword,
 } = require("../controllers/authControllers");
 const { privateRoute } = require("../middleware/authMiddleware");
 const {
@@ -36,6 +39,9 @@ router.post("/user-role", privateRoute, adminOnly, changeUserRole);
 
 router.post("/send-automated-email", privateRoute, sendAutoMatedEmail);
 router.post("/verification-email", privateRoute, verificationEmail);
-router.patch("/verify-user/:verificationToken", privateRoute, verifyUser);
+router.patch("/verify-user/:verificationToken", verifyUser);
+router.post("/forgot-password", forgotPassword);
+router.patch("/reset-password/:resetToken", resetPassword);
+router.patch("/change-password", privateRoute, changePassword);
 
 module.exports = router;

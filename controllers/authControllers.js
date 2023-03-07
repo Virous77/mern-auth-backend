@@ -352,7 +352,6 @@ exports.verificationEmail = asyncHandler(async (req, res) => {
 ////verify user
 exports.verifyUser = asyncHandler(async (req, res) => {
   const { verificationToken } = req.params;
-
   const hashedToken = hashToken(verificationToken);
 
   const userToken = await Token.findOne({
@@ -380,4 +379,125 @@ exports.verifyUser = asyncHandler(async (req, res) => {
   user.isVerified = true;
   await user.save();
   res.status(200).json({ message: "Account verified successfully!" });
+});
+
+//// Forgot password
+exports.forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    setError({
+      res,
+      message: "No user with this email",
+    });
+  }
+
+  ///Delete token if it's exists in DB
+  let token = await Token.findOne({ useId: user._id });
+
+  if (token) {
+    await token.deleteOne();
+  }
+
+  //Create reset token and save
+  const resetToken = crypto.randomBytes(32).toString("hex") + user._id;
+  console.log(resetToken);
+
+  //Hash token and save to DB
+  const hashedToken = hashToken(resetToken);
+
+  await new Token({
+    userId: user.id,
+    rToken: hashedToken,
+    createdAt: Date.now(),
+    expiredAt: Date.now() + 60 * (60 * 1000),
+  }).save();
+
+  //Construct resetUrl token
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+  const subject = "Password reset - Virous Team ";
+  const send_to = user.email;
+  const sent_from = process.env.EMAIL_USER;
+  const reply_to = "noreply@virous.com";
+  const template = "forgotPassword";
+  const name = user.name;
+  const link = resetUrl;
+
+  try {
+    await sendEmail(
+      subject,
+      send_to,
+      sent_from,
+      reply_to,
+      template,
+      link,
+      name
+    );
+    res.status(200).json({ message: "Password reset email sent!" });
+  } catch (error) {
+    console.log(error);
+    setError({
+      res,
+      code: 500,
+      message: "Email not sent, Please try again",
+    });
+  }
+});
+
+/// Reset password
+exports.resetPassword = asyncHandler(async (req, res) => {
+  const { resetToken } = req.params;
+  const { password } = req.body;
+
+  const hashedToken = hashToken(resetToken);
+
+  const userToken = await Token.findOne({
+    rToken: hashedToken,
+  });
+
+  if (!userToken) {
+    setError({
+      res,
+      message: "Invalid or Expired token",
+    });
+  }
+
+  /////Find user
+  const user = await User.findOne({ _id: userToken.userId });
+
+  ////Now reset password
+  user.password = password;
+  await user.save();
+  res.status(200).json({ message: "Password reset successful!" });
+});
+
+/// Change password
+exports.changePassword = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  const { oldPassword, password } = req.body;
+
+  if (!oldPassword || !password) {
+    setError({
+      res,
+      message: "Please enter old and new password",
+    });
+  }
+
+  ///check if password is correct
+  const passwordIsCorrect = await bcrypt.compare(oldPassword, user.password);
+
+  //save new password
+
+  if (passwordIsCorrect) {
+    user.password = password;
+    await user.save();
+    res.status(200).json({ message: "Password changed successful" });
+  } else {
+    setError({
+      res,
+      message: "Old Password is incorrect!",
+    });
+  }
 });
