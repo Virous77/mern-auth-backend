@@ -13,6 +13,8 @@ const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/SendEmail");
 const Token = require("../models/tokenModel");
 const crypto = require("crypto");
+const Cryptr = require("cryptr");
+const cryptr = new Cryptr(process.env.CRYPTR_KEY);
 
 //////////Register User Handler
 exports.registerUser = asyncHandler(async (req, res) => {
@@ -97,6 +99,19 @@ exports.loginUser = asyncHandler(async (req, res) => {
   }
 
   ///Trigger 2FA
+  const ua = parser(req.headers["user-agent"]);
+  const thisUgerAgent = ua.ua;
+
+  const allowedAgent = user.userAgent.includes(thisUgerAgent);
+
+  if (!allowedAgent) {
+    //generate 6 digit code.
+    const loginCode = Math.floor(100000 + Math.random() * 900000);
+
+    //encrypt login token before saving in DB
+    const encryptedLoginCode = cryptr.encrypt(loginCode.toString());
+  } else {
+  }
 
   /// generate token
   const token = generateToken(user._id);
