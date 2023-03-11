@@ -15,6 +15,8 @@ const {
   forgotPassword,
   resetPassword,
   changePassword,
+  sendLoginCode,
+  loginWithCode,
 } = require("../controllers/authControllers");
 const { privateRoute } = require("../middleware/authMiddleware");
 const {
@@ -43,5 +45,7 @@ router.patch("/verify-user/:verificationToken", verifyUser);
 router.post("/forgot-password", forgotPassword);
 router.patch("/reset-password/:resetToken", resetPassword);
 router.patch("/change-password", privateRoute, changePassword);
+router.post("/send-login-code/:email", sendLoginCode);
+router.post("/login-with-code/:email", loginWithCode);
 
 module.exports = router;

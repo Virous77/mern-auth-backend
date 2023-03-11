@@ -15,6 +15,7 @@ const Token = require("../models/tokenModel");
 const crypto = require("crypto");
 const Cryptr = require("cryptr");
 const cryptr = new Cryptr(process.env.CRYPTR_KEY);
+const parser = require("ua-parser-js");
 
 //////////Register User Handler
 exports.registerUser = asyncHandler(async (req, res) => {
@@ -101,7 +102,6 @@ exports.loginUser = asyncHandler(async (req, res) => {
   ///Trigger 2FA
   const ua = parser(req.headers["user-agent"]);
   const thisUgerAgent = ua.ua;
-
   const allowedAgent = user.userAgent.includes(thisUgerAgent);
 
   if (!allowedAgent) {
@@ -110,7 +110,28 @@ exports.loginUser = asyncHandler(async (req, res) => {
 
     //encrypt login token before saving in DB
     const encryptedLoginCode = cryptr.encrypt(loginCode.toString());
+
+    ///Delete token if it's exists in DB
+    let userToken = await Token.findOne({ useId: user._id });
+
+    if (userToken) {
+      await userToken.deleteOne();
+    }
+
+    //Hash token and save to DB
+    await new Token({
+      userId: user.id,
+      lToken: encryptedLoginCode,
+      createdAt: Date.now(),
+      expiredAt: Date.now() + 60 * (60 * 1000),
+    }).save();
+
+    setError({
+      res,
+      message: "Check your email for login code.",
+    });
   } else {
+    console.log("cool");
   }
 
   /// generate token
@@ -417,7 +438,6 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
 
   //Create reset token and save
   const resetToken = crypto.randomBytes(32).toString("hex") + user._id;
-  console.log(resetToken);
 
   //Hash token and save to DB
   const hashedToken = hashToken(resetToken);
@@ -513,6 +533,113 @@ exports.changePassword = asyncHandler(async (req, res) => {
     setError({
       res,
       message: "Old Password is incorrect!",
+    });
+  }
+});
+
+////send Login code
+exports.sendLoginCode = asyncHandler(async (req, res) => {
+  const { email } = req.params;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    setError({
+      res,
+      message: "No user with this email",
+    });
+  }
+
+  ///Find Login code in DB
+  let userToken = await Token.findOne({
+    userId: user._id,
+    expiredAt: { $gt: Date.now() },
+  });
+
+  if (!userToken) {
+    setError({
+      res,
+      message: "Invalid or Expired token, Login agin!",
+    });
+  }
+
+  const loginCode = userToken.lToken;
+  const sendRealCode = cryptr.decrypt(loginCode);
+
+  ///Send login code
+  const subject = "Login Access code - Virous Team ";
+  const send_to = email;
+  const sent_from = process.env.EMAIL_USER;
+  const reply_to = "noreply@virous.com";
+  const template = "loginCode";
+  const name = user.name;
+  const link = sendRealCode;
+
+  try {
+    await sendEmail(
+      subject,
+      send_to,
+      sent_from,
+      reply_to,
+      template,
+      link,
+      name
+    );
+    res.status(200).json({ message: "Login code email sent!" });
+  } catch (error) {
+    console.log(error);
+    setError({
+      res,
+      code: 500,
+      message: "Email not sent, Please try again",
+    });
+  }
+});
+
+exports.loginWithCode = asyncHandler(async (req, res) => {
+  const { email } = req.params;
+  const { loginCode } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    setError({
+      res,
+      message: "No user with this email",
+    });
+  }
+
+  ///Find Login code in DB
+  let userToken = await Token.findOne({
+    userId: user._id,
+    expiredAt: { $gt: Date.now() },
+  });
+
+  if (!userToken) {
+    setError({
+      res,
+      message: "Invalid or Expired token, Login agin!",
+    });
+  }
+
+  const sendRealCode = cryptr.decrypt(userToken.lToken);
+
+  if (loginCode === sendRealCode) {
+    ///Register user agent
+    const ua = parser(req.headers["user-agent"]);
+    const thisUgerAgent = ua.ua;
+    user.userAgent.push(thisUgerAgent);
+    await user.save();
+
+    const token = generateToken(user._id);
+
+    sendCookies(res, token);
+    sendUserData(res, user, token);
+  } else {
+    setError({
+      res,
+      code: 400,
+      message: "Incorrect login code, Please try again!",
     });
   }
 });
