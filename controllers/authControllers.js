@@ -99,7 +99,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
     });
   }
 
-  ///Trigger 2FA
+  // ///Trigger 2FA
   const ua = parser(req.headers["user-agent"]);
   const thisUgerAgent = ua.ua;
   const allowedAgent = user.userAgent.includes(thisUgerAgent);
@@ -130,8 +130,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
       res,
       message: "Check your email for login code.",
     });
-  } else {
-    console.log("cool");
+    return;
   }
 
   /// generate token
