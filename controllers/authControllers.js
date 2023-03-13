@@ -25,14 +25,14 @@ exports.registerUser = asyncHandler(async (req, res) => {
   if (!name || !email || !password) {
     setError({
       res,
-      message: "Please fill all the fields then process",
+      message: "Please fill all the fields then proceeds!",
     });
   }
 
   if (password.trim().length <= 7) {
     setError({
       res,
-      message: "Password must be up to 7 characters",
+      message: "Password must be up to 8 characters",
     });
   }
 
