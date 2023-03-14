@@ -12,7 +12,7 @@ const sendCookies = (res, token, logout) => {
     path: "/",
     httpOnly: false,
     expires: new Date(logout || Date.now() + 1000 * 86400),
-    sameSite: "none",
+    sameSite: "Lax",
     secure: false,
   });
 };
