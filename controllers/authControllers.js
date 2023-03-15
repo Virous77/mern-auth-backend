@@ -21,6 +21,7 @@ const parser = require("ua-parser-js");
 exports.registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
+console.log("hello")
   //Validation
   if (!name || !email || !password) {
     setError({
