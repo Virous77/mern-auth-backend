@@ -62,7 +62,7 @@ exports.registerUser = asyncHandler(async (req, res) => {
 
   if (user) {
     sendCookies(res, token);
-    sendUserData(res, user, token);
+    sendUserData(res, user);
   } else {
     setError({
       res,
@@ -138,7 +138,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
 
   if (user && passwordCorrect) {
     sendCookies(res, token);
-    sendUserData(res, user, token);
+    sendUserData(res, user);
   } else {
     setError({
       res,
