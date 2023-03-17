@@ -231,16 +231,22 @@ exports.checkLoginUser = asyncHandler(async (req, res) => {
   const token = req.cookies.token;
 
   if (!token) {
-    return res.json(false);
+    return res.status(200).json({
+      status: false,
+    });
   }
 
   //Verify Token
   const verified = jwt.verify(token, process.env.JWT_SECRET);
 
+  ///Get userId from token
+  const user = await User.findById(verified.id).select("-password");
+
   if (verified) {
-    return res.json(true);
-  } else {
-    return res.json(false);
+    return res.status(200).json({
+      user: user,
+      status: true,
+    });
   }
 });
 
