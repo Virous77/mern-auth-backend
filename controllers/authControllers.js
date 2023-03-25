@@ -298,8 +298,6 @@ exports.sendAutoMatedEmail = asyncHandler(async (req, res) => {
   const name = user.name;
   const link = `${process.env.FRONTEND_URL}${url}`;
 
-  console.log(sent_from);
-
   try {
     await sendEmail(
       subject,
@@ -339,7 +337,7 @@ exports.verificationEmail = asyncHandler(async (req, res) => {
     });
   }
 
-  let token = await Token.findOne({ useId: user._id });
+  let token = await Token.findOne({ userId: user._id });
 
   ///Delete token if it's exists in DB
   if (token) {
