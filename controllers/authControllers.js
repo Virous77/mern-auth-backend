@@ -433,7 +433,7 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
   }
 
   ///Delete token if it's exists in DB
-  let token = await Token.findOne({ useId: user._id });
+  let token = await Token.findOne({ userId: user._id });
 
   if (token) {
     await token.deleteOne();
@@ -453,7 +453,7 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
   }).save();
 
   //Construct resetUrl token
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/reset/${resetToken}`;
 
   const subject = "Password reset - Virous Team ";
   const send_to = user.email;
