@@ -11,7 +11,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://react-authv.netlify.app/",
+    origin: "https://react-authv.netlify.app",
     credentials: true,
   })
 );
