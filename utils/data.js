@@ -12,8 +12,8 @@ const sendCookies = (res, token, logout) => {
     path: "/",
     httpOnly: true,
     expires: new Date(logout || Date.now() + 1000 * 86400),
-    sameSite: "Lax",
-    secure: true,
+    sameSite: "none",
+    secure: false,
   });
 };
 
