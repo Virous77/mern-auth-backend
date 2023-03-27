@@ -15,6 +15,7 @@ app.use(
       "http://localhost:5173",
       "https://react-authV.vercel.app",
       "https://react-authv.onrender.com/",
+      "https://react-authv.netlify.app/",
     ],
     credentials: true,
   })
