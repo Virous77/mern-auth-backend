@@ -11,7 +11,8 @@ const app = express();
 
 app.use(
   cors({
-    origin: "*",
+    origin: "https://auth-mern.onrender.com/",
+    credentials: false,
   })
 );
 app.use(express.json());
