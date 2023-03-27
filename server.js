@@ -11,8 +11,8 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://auth-mern.onrender.com/",
-    credentials: false,
+    origin: "https://react-authv.netlify.app/",
+    credentials: true,
   })
 );
 app.use(express.json());
