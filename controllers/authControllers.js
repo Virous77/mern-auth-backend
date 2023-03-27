@@ -112,7 +112,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
     const encryptedLoginCode = cryptr.encrypt(loginCode.toString());
 
     ///Delete token if it's exists in DB
-    let userToken = await Token.findOne({ useId: user._id });
+    let userToken = await Token.findOne({ userId: user._id });
 
     if (userToken) {
       await userToken.deleteOne();
@@ -128,6 +128,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
 
     setError({
       res,
+      code: 200,
       message: "Check your email for login code.",
     });
     return;
