@@ -11,7 +11,11 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://react-authV.vercel.app"],
+    origin: [
+      "http://localhost:5173",
+      "https://react-authV.vercel.app",
+      "https://react-authv.onrender.com/",
+    ],
     credentials: true,
   })
 );
