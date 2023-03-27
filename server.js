@@ -11,13 +11,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://react-authV.vercel.app",
-      "https://react-authv.onrender.com/",
-      "https://react-authv.netlify.app/",
-    ],
-    credentials: true,
+    origin: "*",
   })
 );
 app.use(express.json());
