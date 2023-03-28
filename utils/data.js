@@ -10,10 +10,10 @@ const generateToken = (id) => {
 const sendCookies = (res, token, logout) => {
   return res.cookie("token", token, {
     path: "/",
-    httpOnly: true,
+    httpOnly: false,
     expires: new Date(logout || Date.now() + 1000 * 86400),
-    sameSite: "none",
-    secure: true,
+    sameSite: "Lax",
+    secure: false,
   });
 };
 
